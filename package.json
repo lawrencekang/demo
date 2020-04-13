@@ -8,7 +8,8 @@
     "build": "webpack --watch --colors --progress",
     "start:dev": "webpack-dev-server",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "lint": "eslint --fix 'client/src/**/*.js'"
   },
   "author": "Lawrence Kang",
   "license": "ISC",

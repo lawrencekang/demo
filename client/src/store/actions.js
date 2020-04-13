@@ -57,12 +57,12 @@ function enableShowResponses() {
   };
 }
 
-function setError(error) {
-  return {
-    type: actionTypes.SET_ERROR,
-    error,
-  };
-}
+// function setError(error) {
+//   return {
+//     type: actionTypes.SET_ERROR,
+//     error,
+//   };
+// }
 
 // Thunks
 
@@ -105,7 +105,7 @@ function delayedAppend(speaker, text, terminal) {
   let delay = 1000;
   if (!Array.isArray(text)) {
     const words = text.split(' ').length;
-    delay = words / WPM * 250 * 60;
+    delay = (words / WPM) * 250 * 60;
   }
   return (dispatch) => {
     setTimeout(() => {
@@ -155,11 +155,13 @@ function getPath(state, chatInput) {
   string values.
 */
 function validAnswer(state) {
-  //  handle the case where were using the "-1" question index
+  //  handle the case where were using the '-1' question index
   const activeQuestion = state.questions[state.activeQuestionIndex];
   const currentInput = state.chatInput;
   const { validation } = activeQuestion;
-  const validationType = Array.isArray(validation) ? 'array' : typeof validation;
+  const validationType = Array.isArray(validation)
+    ? 'array'
+    : typeof validation;
 
   switch (validationType) {
     case 'array':
@@ -188,14 +190,16 @@ function validAnswer(state) {
 function getHelperPrompt(state) {
   const activeQuestion = state.questions[state.activeQuestionIndex];
   const { validation } = activeQuestion;
-  const validationType = Array.isArray(validation) ? 'array' : typeof validation;
+  const validationType = Array.isArray(validation)
+    ? 'array'
+    : typeof validation;
   const randomInvalidPromptIndex = Math.floor(
     Math.random() * Math.floor(state.invalidAnswerPrompts.length),
   );
   const randomPrompt = state.invalidAnswerPrompts[randomInvalidPromptIndex];
   switch (validationType) {
     case 'array':
-      return `${randomPrompt}  Please answer "${validation.join('," or "')}."`;
+      return `${randomPrompt}  Please answer '${validation.join(', or ')}.'`;
     case 'string':
       if (activeQuestion.question.indexOf('email') > -1) {
         return 'I was looking for an email address, can you check the format and try again?';
@@ -215,25 +219,31 @@ function getHelperPrompt(state) {
 function sendAnswer(chatInput) {
   return (dispatch, getState) => {
     const state = getState();
-    axios.put(`https://jsonplaceholder.typicode.com/posts/${state.activeQuestionIndex}`, {
-      answer: chatInput,
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          const path = getPath(state, chatInput);
-          if (path !== undefined) {
-            dispatch(setActiveQuestionIndex(path));
-            dispatch(nextQuestion(path));
-          }
-        }
-      })
-      .catch((error) => {
-        // TODO: decide how to handle the error here, with either a silent fail or a user alert.
-        dispatch(setError(error));
-      });
+
+    const path = getPath(state, chatInput);
+    if (path !== undefined) {
+      dispatch(setActiveQuestionIndex(path));
+      dispatch(nextQuestion(path));
+    }
+
+    // axios.put(`https://jsonplaceholder.typicode.com/posts/${state.activeQuestionIndex}`, {
+    //   answer: chatInput,
+    // })
+    //   .then((response) => {
+    //     if (response.status === 200) {
+    //       const path = getPath(state, chatInput);
+    //       if (path !== undefined) {
+    //         dispatch(setActiveQuestionIndex(path));
+    //         dispatch(nextQuestion(path));
+    //       }
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     // TODO: decide how to handle the error here, with either a silent fail or a user alert.
+    //     dispatch(setError(error));
+    //   });
   };
 }
-
 
 /*
   agentResponse controls the flow of the conversation, moving on to the next
@@ -254,7 +264,6 @@ function agentResponse(answerIsValid, chatInput) {
     }
   };
 }
-
 
 function validateInput(obscureText) {
   return (dispatch, getState) => {
@@ -284,9 +293,10 @@ function validateInput(obscureText) {
 function getQuestions() {
   return (dispatch) => {
     const questionsUrl = 'https://gist.githubusercontent.com/pcperini/'
-    + '97fe41fc42ac1c610548cbfebb0a4b88/raw/'
-    + 'cc07f09753ad8fefb308f5adae15bf82c7fffb72/cerebral_challenge.json';
-    return axios.get(questionsUrl)
+      + '97fe41fc42ac1c610548cbfebb0a4b88/raw/'
+      + 'cc07f09753ad8fefb308f5adae15bf82c7fffb72/cerebral_challenge.json';
+    return axios
+      .get(questionsUrl)
       .then((response) => {
         dispatch(receiveQuestions(response.data));
         dispatch(setActiveQuestionIndex(1));
@@ -315,8 +325,12 @@ function showResponses() {
     const state = getState();
     const answeredQuestions = state.questions.filter(item => !!item.answer);
     if (answeredQuestions.length) {
-      dispatch(appendToConversation(state.agent,
-        "Here's how you've answered the questions so far."));
+      dispatch(
+        appendToConversation(
+          state.agent,
+          "Here's how you've answered the questions so far.",
+        ),
+      );
       dispatch(delayedAppend(state.agent, formatResponses(answeredQuestions)));
     }
   };
